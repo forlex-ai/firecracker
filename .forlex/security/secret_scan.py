@@ -14,9 +14,10 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 
+UTC = timezone.utc
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 EXCEPTION_FIELDS = {
     "id",
