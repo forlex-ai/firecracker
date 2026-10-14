@@ -31,6 +31,8 @@ RIVOS_COPYRIGHT = "Copyright © 2023 Rivos, Inc."
 RIVOS_LICENSE = "SPDX-License-Identifier: Apache-2.0"
 ORACLE_COPYRIGHT = "Copyright © 2020, Oracle and/or its affiliates."
 ORACLE_LICENSE = "SPDX-License-Identifier: Apache-2.0"
+FORLEX_COPYRIGHT = "Copyright 2026 Forlex Ltda and Forlex, LLC. All Rights Reserved."
+FORLEX_LICENSE = "SPDX-License-Identifier: Apache-2.0"
 
 EXCLUDE = ["build", ".kernel", ".git"]
 
@@ -98,6 +100,10 @@ def _validate_license(filename):
             file, ORACLE_LICENSE
         )
 
+        has_forlex_copyright = FORLEX_COPYRIGHT in copyright_info and _look_for_license(
+            file, FORLEX_LICENSE
+        )
+
         return (
             has_amazon_copyright
             or has_chromium_copyright
@@ -106,6 +112,7 @@ def _validate_license(filename):
             or has_intel_copyright
             or has_rivos_copyright
             or has_oracle_copyright
+            or has_forlex_copyright
         )
 
 
@@ -150,3 +157,16 @@ def test_dependency_licenses():
     # or remove them if they are incompatible with our licenses.
     license_res = [line for line in stderr.split("\n") if "license" in line]
     assert not license_res
+
+
+def test_forlex_security_packet_license(tmp_path):
+    """Accept the truthful Forlex holder only with the repository Apache license."""
+    source = tmp_path / "forlex_security.py"
+    source.write_text(f"# {FORLEX_COPYRIGHT}\n# {FORLEX_LICENSE}\n")
+    assert _validate_license(source)
+    source.write_text(f"# {FORLEX_COPYRIGHT}\n# SPDX-License-Identifier: MIT\n")
+    assert not _validate_license(source)
+    source.write_text(
+        "# Copyright unrelated holder\n# SPDX-License-Identifier: Apache-2.0\n"
+    )
+    assert not _validate_license(source)
